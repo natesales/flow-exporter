@@ -1,6 +1,6 @@
 before:
   hooks:
-    - go mod tidy
+    - go mod download
 builds:
   - env:
       - CGO_ENABLED=0
@@ -8,20 +8,30 @@ builds:
       - linux
     goarch:
       - amd64
-      - arm
       - arm64
-archives:
-  - name_template: '{{ .ProjectName }}-{{ .Version }}.{{ .Os }}-{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}'
-    replacements:
-      amd64: x86_64
-checksum:
-  name_template: "{{ .ProjectName }}_checksums.txt"
-  algorithm: sha256
-snapshot:
-  name_template: "{{ .Tag }}-next"
-changelog:
-  sort: asc
-  filters:
-    exclude:
-    - '^docs:'
-    - '^test:'
+nfpms:
+  - id: flow-exporter
+    package_name: flow-exporter
+    vendor: Nate Sales
+    homepage: https://github.com/natesales/flow-exporter
+    maintainer: Nate Sales <nate@natesales.net>
+    description: Export network flows from Kafka to Prometheus
+    license: MIT
+    section: utils
+    priority: extra
+    formats:
+      - deb
+      - rpm
+dockers:
+  - image_templates: ["ghcr.io/natesales/flow-exporter:{{ .Version }}-amd64"]
+    dockerfile: Dockerfile
+    use: buildx
+    build_flag_templates:
+      - --platform=linux/amd64
+      - --label=org.opencontainers.image.title=flow-exporter
+      - --label=org.opencontainers.image.description=Export network flows from Kafka to Prometheus
+      - --label=org.opencontainers.image.url=https://github.com/natesales/flow-exporter
+      - --label=org.opencontainers.image.source=https://github.com/natesales/flow-exporter
+      - --label=org.opencontainers.image.version={{ .Version }}
+      - --label=org.opencontainers.image.revision={{ .FullCommit }}
+      - --label=org.opencontainers.image.licenses=MIT
